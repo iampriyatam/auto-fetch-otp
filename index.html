@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Web OTP API Simplest</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    div {
+      font-family: sans-serif;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>
+    The simplest Web OTP API demo
+  </h1>
+  <form action="verify-otp.php" method="POST">
+    <input type="text" inputmode="numeric" autocomplete="one-time-code" pattern="\d{6}" required>
+  </form>
+  <script>
+    // Feature detection
+    if ('OTPCredential' in window) {
+      window.addEventListener('DOMContentLoaded', e => {
+        const input = document.querySelector('input[autocomplete="one-time-code"]');
+        if (!input) return;
+        // Cancel the WebOTP API if the form is submitted manually.
+        const ac = new AbortController();
+        const form = input.closest('form');
+        if (form) {
+          form.addEventListener('submit', e => {
+            // Cancel the WebOTP API.
+            ac.abort();
+          });
+        }
+        // Invoke the WebOTP API
+        navigator.credentials.get({
+          otp: {
+            transport: ['sms']
+          },
+          signal: ac.signal
+        }).then(otp => {
+          input.value = otp.code;
+          // Automatically submit the form when an OTP is obtained.
+          if (form) form.submit();
+        }).catch(err => {
+          console.log(err);
+        });
+      });
+    }
+  </script>
+</body>
+
+</html>
